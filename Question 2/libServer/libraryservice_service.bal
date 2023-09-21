@@ -1,32 +1,42 @@
 import ballerina/grpc;
-import ballerina/io;
+import ballerina/log;
 
 // Import your generated proto file
 import library;
 
-public function main() {
-    // Create a gRPC client
-    library.LibraryServiceClient libraryClient = new library.LibraryServiceClient("http://localhost:9090");
+// Define your service
+service<library.LibraryService> libraryService bind { port: 9090 } {
 
-    // Make RPC calls to the server
+    // Implement the RPC methods
 
-    // Make GetAvailableBooks RPC call
-    library.EmptyRequest emptyRequest = new library.EmptyRequest();
-    library.BookListResponse bookListResponse = check libraryClient->getAvailableBooks(emptyRequest);
-    // Process and display the available books
-    foreach var book in bookListResponse.books {
-        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
+    // Implement GetAvailableBooks RPC
+    resource function getAvailableBooks(library.EmptyRequest req) returns library.BookListResponse {
+        // Implement the logic to get available books
+        // You can use a database or any data source here
+        log:print("Received GetAvailableBooks request");
+        // Create and return a BookListResponse
+        library.BookListResponse bookListResponse = new library.BookListResponse();
+        // Add books to bookListResponse
+        // Example:
+        library.Book book1 = new library.Book();
+        book1.title = "Book 1";
+        book1.author = "Author 1";
+        book1.ISBN = "ISBN123";
+        bookListResponse.books.add(book1);
+        // Add more books as needed
+        return bookListResponse;
     }
 
-    // Make BorrowBook RPC call
-    library.BorrowBookRequest borrowRequest = new library.BorrowBookRequest();
-    borrowRequest.ISBN = "ISBN123";
-    borrowRequest.userID = "UserID123";
-    library.BookResponse borrowResponse = check libraryClient->borrowBook(borrowRequest);
-    // Process and display the response, which may contain ISBN or other details
+    // Implement BorrowBook RPC
+    resource function borrowBook(library.BorrowBookRequest req) returns library.BookResponse {
+        // Implement the logic to borrow a book
+        // You can update the book status here
+        log:print("Received BorrowBook request");
+        // Update book status and return a BookResponse
+        library.BookResponse response = new library.BookResponse();
+        response.ISBN = req.ISBN;
+        return response;
+    }
 
-    // Implement other RPC calls similarly
-
-    // Close the gRPC client connection
-    libraryClient->close();
+    // Implement other RPC methods similarly
 }
