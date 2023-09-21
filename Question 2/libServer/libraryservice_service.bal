@@ -1,27 +1,32 @@
 import ballerina/grpc;
+import ballerina/io;
 
-listener grpc:Listener ep = new (9090);
+// Import your generated proto file
+import library;
 
-@grpc:Descriptor {value: LIBRARY_DESC}
-service "LibraryService" on ep {
+public function main() {
+    // Create a gRPC client
+    library.LibraryServiceClient libraryClient = new library.LibraryServiceClient("http://localhost:9090");
 
-    remote function GetAvailableBooks(EmptyRequest value) returns BookListResponse|error {
+    // Make RPC calls to the server
+
+    // Make GetAvailableBooks RPC call
+    library.EmptyRequest emptyRequest = new library.EmptyRequest();
+    library.BookListResponse bookListResponse = check libraryClient->getAvailableBooks(emptyRequest);
+    // Process and display the available books
+    foreach var book in bookListResponse.books {
+        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
-    remote function BorrowBook(BorrowBookRequest value) returns BookResponse|error {
-    }
-    remote function SearchBook(SearchBookRequest value) returns BookListResponse|error {
-    }
-    remote function LocateBook(LocateBookRequest value) returns BookLocationResponse|error {
-    }
-    remote function ReturnBook(ReturnBookRequest value) returns BookResponse|error {
-    }
-    remote function AddBook(AddBookRequest value) returns BookResponse|error {
-    }
-    remote function UpdateBook(UpdateBookRequest value) returns BookResponse|error {
-    }
-    remote function RemoveBook(RemoveBookRequest value) returns BookListResponse|error {
-    }
-    remote function ListBorrowedBooks(EmptyRequest value) returns BookListResponse|error {
-    }
+
+    // Make BorrowBook RPC call
+    library.BorrowBookRequest borrowRequest = new library.BorrowBookRequest();
+    borrowRequest.ISBN = "ISBN123";
+    borrowRequest.userID = "UserID123";
+    library.BookResponse borrowResponse = check libraryClient->borrowBook(borrowRequest);
+    // Process and display the response, which may contain ISBN or other details
+
+    // Implement other RPC calls similarly
+
+    // Close the gRPC client connection
+    libraryClient->close();
 }
-
