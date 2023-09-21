@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package library;
+
+service LibraryService {
+    // Student Functions
+    rpc GetAvailableBooks(EmptyRequest) returns (BookListResponse);
+    rpc BorrowBook(BorrowBookRequest) returns (BookResponse);
+    rpc SearchBook(SearchBookRequest) returns (BookListResponse);
+    rpc LocateBook(LocateBookRequest) returns (BookLocationResponse);
+    rpc ReturnBook(ReturnBookRequest) returns (BookResponse);
+
+    // Librarian Functions
+    rpc AddBook(AddBookRequest) returns (BookResponse);
+    rpc UpdateBook(UpdateBookRequest) returns (BookResponse);
+    rpc RemoveBook(RemoveBookRequest) returns (BookListResponse);
+    rpc ListBorrowedBooks(EmptyRequest) returns (BookListResponse);
+}
+
+message EmptyRequest {}
+
+message Book {
+    string title = 1;
+    string author = 2;
+    string ISBN = 3;
+    bool isBorrowed = 4;
+}
+
+message BookResponse {
+    string ISBN = 1;
+}
+
+message BookListResponse {
+    repeated Book books = 1;
+}
+
+message BorrowBookRequest {
+    string ISBN = 1;
+    string userID = 2;
+}
+
+message SearchBookRequest {
+    string title = 1;
+}
+
+message LocateBookRequest {
+    string ISBN = 1;
+}
+
+message ReturnBookRequest {
+    string ISBN = 1;
+}
+
+message AddBookRequest {
+    string title = 1;
+    string author = 2;
+    string ISBN = 3;
+}
+
+message UpdateBookRequest {
+    string ISBN = 1;
+    string title = 2;
+    string author = 3;
+}
+
+message RemoveBookRequest {
+    string ISBN = 1;
+}
+
+message BookLocationResponse {
+    string location = 1;
+}
