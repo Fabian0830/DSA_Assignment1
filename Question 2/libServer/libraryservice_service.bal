@@ -1,30 +1,59 @@
 import ballerina/grpc;
+import ballerina/log;
 
-listener grpc:Listener ep = new (9090);
+// Import your generated Protocol Buffer file
+import library
 
-@grpc:Descriptor {value: LIBRARY_DESC}
-service "LibraryService" on ep {
+public function main() returns error? {
+    // Create a gRPC client to connect to the server.
+    LibraryServiceClient ep = check new ("http://localhost:9090");
 
-    remote function GetAvailableBooks(EmptyRequest value) returns BookListResponse|error {
-        
-    }
-    remote function BorrowBook(BorrowBookRequest value) returns BookResponse|error {
+    EmptyRequest getAvailableBooksRequest = {};
+    BookListResponse getAvailableBooksResponse = check ep->GetAvailableBooks(getAvailableBooksRequest);
+    io:println("Available Books:");
+    foreach var book in getAvailableBooksResponse.books {
+        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
 
-    remote function SearchBook(SearchBookRequest value) returns BookListResponse|error {
+    BorrowBookRequest borrowBookRequest = {ISBN: "ballerina", userID: "ballerina"};
+    BookResponse borrowBookResponse = check ep->BorrowBook(borrowBookRequest);
+    io:println("Borrow Book Response: " + borrowBookResponse.ISBN);
+
+    SearchBookRequest searchBookRequest = {title: "ballerina"};
+    BookListResponse searchBookResponse = check ep->SearchBook(searchBookRequest);
+    io:println("Search Book Response:");
+    foreach var book in searchBookResponse.books {
+        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
-    remote function LocateBook(LocateBookRequest value) returns BookLocationResponse|error {
+
+    LocateBookRequest locateBookRequest = {ISBN: "ballerina"};
+    BookLocationResponse locateBookResponse = check ep->LocateBook(locateBookRequest);
+    io:println("Locate Book Response: " + locateBookResponse.location);
+
+    ReturnBookRequest returnBookRequest = {ISBN: "ballerina"};
+    BookResponse returnBookResponse = check ep->ReturnBook(returnBookRequest);
+    io:println("Return Book Response: " + returnBookResponse.ISBN);
+
+    AddBookRequest addBookRequest = {title: "ballerina", author: "ballerina", ISBN: "ballerina"};
+    BookResponse addBookResponse = check ep->AddBook(addBookRequest);
+    io:println("Add Book Response: " + addBookResponse.ISBN);
+
+    UpdateBookRequest updateBookRequest = {ISBN: "ballerina", title: "ballerina", author: "ballerina"};
+    BookResponse updateBookResponse = check ep->UpdateBook(updateBookRequest);
+    io:println("Update Book Response: " + updateBookResponse.ISBN);
+
+    RemoveBookRequest removeBookRequest = {ISBN: "ballerina"};
+    BookListResponse removeBookResponse = check ep->RemoveBook(removeBookRequest);
+    io:println("Remove Book Response:");
+    foreach var book in removeBookResponse.books {
+        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
-    remote function ReturnBook(ReturnBookRequest value) returns BookResponse|error {
-    }
-    remote function AddBook(AddBookRequest value) returns BookResponse|error {
-    }
-    remote function UpdateBook(UpdateBookRequest value) returns BookResponse|error {
-    }
-    remote function RemoveBook(RemoveBookRequest value) returns BookListResponse|error {
-    }
-    remote function ListBorrowedBooks(EmptyRequest value) returns BookListResponse|error {
+
+    EmptyRequest listBorrowedBooksRequest = {};
+    BookListResponse listBorrowedBooksResponse = check ep->ListBorrowedBooks(listBorrowedBooksRequest);
+    io:println("List Borrowed Books:");
+    foreach var book in listBorrowedBooksResponse.books {
+        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
 }
 
-p
