@@ -1,9 +1,9 @@
 import ballerina/io;
 
-LibraryServiceClient ep = check new ("http://localhost:9090");
+LibraryServiceClient ep = check new("http://localhost:9090");
 
 public function main() returns error? {
-    
+
     // 1. Get Available Books
     EmptyRequest getAvailableBooksRequest = {};
     var getAvailableBooksResponse = check ep->GetAvailableBooks(getAvailableBooksRequest);
@@ -61,6 +61,4 @@ public function main() returns error? {
     foreach var book in listBorrowedBooksResponse.books {
         io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
     }
-    
-    return ();
 }
