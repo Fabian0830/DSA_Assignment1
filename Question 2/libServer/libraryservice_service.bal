@@ -1,59 +1,166 @@
 import ballerina/grpc;
-import ballerina/log;
+// 
+import ballerina/io;
 
-// Import your generated Protocol Buffer file
-import library
+map<string> library = {
+    "12345": "Book1",
+    "23456": "Book2",
+    "45678": "Book3"
+};
 
-public function main() returns error? {
-    // Create a gRPC client to connect to the server.
-    LibraryServiceClient ep = check new ("http://localhost:9090");
 
-    EmptyRequest getAvailableBooksRequest = {};
-    BookListResponse getAvailableBooksResponse = check ep->GetAvailableBooks(getAvailableBooksRequest);
-    io:println("Available Books:");
-    foreach var book in getAvailableBooksResponse.books {
-        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
+// library["12345"] = "Book1";
+// library["23456"] = "Book2";
+// library["34456"] = "Book3";
+
+
+listener grpc:Listener ep = new (9090);
+
+@grpc:Descriptor {value: LIBRARY_DESC}
+service "LibraryService" on ep {
+
+    remote function GetAvailableBooks(EmptyRequest value) returns BookListResponse|error {
+        BookListResponse response;
+        response.books =[];
+        foreach var isbn in library.keys(){
+            Book bookRecord;
+            bookRecord.title = library[isbn] ?: "";
+            bookRecord.author = "Unknown";
+            bookRecord.ISBN = isbn;
+            response.books.push(bookRecord);
+        }
+        return response;
     }
-
-    BorrowBookRequest borrowBookRequest = {ISBN: "ballerina", userID: "ballerina"};
-    BookResponse borrowBookResponse = check ep->BorrowBook(borrowBookRequest);
-    io:println("Borrow Book Response: " + borrowBookResponse.ISBN);
-
-    SearchBookRequest searchBookRequest = {title: "ballerina"};
-    BookListResponse searchBookResponse = check ep->SearchBook(searchBookRequest);
-    io:println("Search Book Response:");
-    foreach var book in searchBookResponse.books {
-        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
+    remote function BorrowBook(BorrowBookRequest value) returns BookResponse|error {
+        string? requestedISBN = value.ISBN;
+        if (requestedISBN != null) {
+            // Check if the book exists and is available
+            if (library.hasKey(requestedISBN) && library[requestedISBN] != "Borrowed") {
+                // Mark the book as borrowed
+                library[requestedISBN] = "Borrowed";
+                // Return the ISBN of the borrowed book
+                BookResponse response;
+                response.ISBN = requestedISBN;
+                return response;
+            } else {
+                // Book not available for borrowing
+                return error("Book not available for borrowing.");
+            }
+        } else {
+            // Handle the case where ISBN is null
+            return error("Invalid ISBN provided.");
+        }
     }
-
-    LocateBookRequest locateBookRequest = {ISBN: "ballerina"};
-    BookLocationResponse locateBookResponse = check ep->LocateBook(locateBookRequest);
-    io:println("Locate Book Response: " + locateBookResponse.location);
-
-    ReturnBookRequest returnBookRequest = {ISBN: "ballerina"};
-    BookResponse returnBookResponse = check ep->ReturnBook(returnBookRequest);
-    io:println("Return Book Response: " + returnBookResponse.ISBN);
-
-    AddBookRequest addBookRequest = {title: "ballerina", author: "ballerina", ISBN: "ballerina"};
-    BookResponse addBookResponse = check ep->AddBook(addBookRequest);
-    io:println("Add Book Response: " + addBookResponse.ISBN);
-
-    UpdateBookRequest updateBookRequest = {ISBN: "ballerina", title: "ballerina", author: "ballerina"};
-    BookResponse updateBookResponse = check ep->UpdateBook(updateBookRequest);
-    io:println("Update Book Response: " + updateBookResponse.ISBN);
-
-    RemoveBookRequest removeBookRequest = {ISBN: "ballerina"};
-    BookListResponse removeBookResponse = check ep->RemoveBook(removeBookRequest);
-    io:println("Remove Book Response:");
-    foreach var book in removeBookResponse.books {
-        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
+    remote function SearchBook(SearchBookRequest value) returns BookListResponse|error {
+        string requestedTitle = value.title;
+        // Search for books with the requested title
+        BookListResponse response;
+        foreach var isbn in library.keys() {
+            if (library[isbn] == requestedTitle) {
+                Book bookRecord;
+                bookRecord.title = requestedTitle;
+                bookRecord.author = "Unknown"; // You can set the author as needed.
+                bookRecord.ISBN = isbn;
+                response.books.push(bookRecord);
+            }
+        }
+        return response;
     }
-
-    EmptyRequest listBorrowedBooksRequest = {};
-    BookListResponse listBorrowedBooksResponse = check ep->ListBorrowedBooks(listBorrowedBooksRequest);
-    io:println("List Borrowed Books:");
-    foreach var book in listBorrowedBooksResponse.books {
-        io:println("Title: " + book.title + ", Author: " + book.author + ", ISBN: " + book.ISBN);
+    remote function LocateBook(LocateBookRequest value) returns BookLocationResponse|error {
+        string requestedISBN = value.ISBN;
+        if (library.hasKey(requestedISBN)) {
+            // Implement the logic to locate the book, e.g., return its shelf location.
+            BookLocationResponse response;
+            response.location = "Shelf A"; // Replace with the actual logic to determine the shelf location.
+            return response;
+        } else {
+            return error("Book not found.");
+        }
+    }
+    remote function ReturnBook(ReturnBookRequest value) returns BookResponse|error {
+         string? returnedISBN = value.ISBN;
+        if (returnedISBN != null) {
+            // Check if the book exists and is borrowed
+            if (library.hasKey(returnedISBN) && library[returnedISBN] == "Borrowed") {
+                // Mark the book as returned
+                library[returnedISBN] = "Available";
+                // Return the ISBN of the returned book
+                BookResponse response;
+                response.ISBN = returnedISBN;
+                return response;
+            } else {
+                // Book cannot be returned
+                return error("Book cannot be returned.");
+            }
+        } else {
+            // Handle the case where ISBN is null
+            return error("Invalid ISBN provided.");
+        }
+    }
+    remote function AddBook(AddBookRequest value) returns BookResponse|error {
+        string newISBN = value.ISBN;
+        string newTitle = value.title;
+        if (!library.hasKey(newISBN)) {
+            // Add the new book to the library
+            library[newISBN] = newTitle;
+            // Return the ISBN of the added book
+            BookResponse response;
+            response.ISBN = newISBN;
+            return response;
+        } else {
+            // Book with the same ISBN already exists
+            return error("Book with the same ISBN already exists.");
+        }
+    }
+    remote function UpdateBook(UpdateBookRequest value) returns BookResponse|error {
+        string existingISBN = value.ISBN;
+        string updatedTitle = value.title;
+        if (library.hasKey(existingISBN)) {
+            // Update the title of the existing book
+            library[existingISBN] = updatedTitle;
+            // Return the ISBN of the updated book
+            BookResponse response;
+            response.ISBN = existingISBN;
+            return response;
+        } else {
+            // Book with the provided ISBN not found
+            return error("Book not found.");
+        }
+    }
+    remote function RemoveBook(RemoveBookRequest value) returns BookListResponse|error {
+        string removedISBN = value.ISBN;
+        if (library.hasKey(removedISBN)) {
+            // Remove the book from the library
+            string remove = library.remove(removedISBN);
+            // Return the list of remaining books
+            BookListResponse response;
+            response.books = [];
+            foreach var isbn in library.keys() {
+                Book bookRecord;
+                bookRecord.title = <string>library[isbn];
+                bookRecord.author = "Unknown"; // You can set the author as needed.
+                bookRecord.ISBN = isbn;
+                response.books.push(bookRecord);
+            }
+            return response;
+        } else {
+            // Book with the provided ISBN not found
+            return error("Book not found.");
+        }
+    }
+    remote function ListBorrowedBooks(EmptyRequest value) returns BookListResponse|error {
+         BookListResponse response;
+        response.books = [];
+        foreach var isbn in library.keys() {
+            if (library[isbn] == "Borrowed") {
+                Book bookRecord;
+                bookRecord.title = "Unknown"; // Title not provided for borrowed books
+                bookRecord.author = "Unknown"; // Author not provided for borrowed books
+                bookRecord.ISBN = isbn;
+                response.books.push(bookRecord);
+            }
+        }
+        return response;
     }
 }
 
