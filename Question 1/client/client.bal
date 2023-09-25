@@ -3,7 +3,6 @@
 
 import ballerina/http;
 
-# RESTful API for managing staff, offices, and courses within the Faculty of Computing and Informatics.
 public isolated client class Client {
     final http:Client clientEp;
     # Gets invoked to initialize the `connector`.
@@ -11,7 +10,7 @@ public isolated client class Client {
     # + config - The configurations to be used when initializing the `connector` 
     # + serviceUrl - URL of the target service 
     # + return - An error if connector initialization failed 
-    public isolated function init(string serviceUrl, ConnectionConfig config =  {}) returns error? {
+    public isolated function init(ConnectionConfig config =  {}, string serviceUrl = "http://localhost:9090/") returns error? {
         http:ClientConfiguration httpClientConfig = {httpVersion: config.httpVersion, timeout: config.timeout, forwarded: config.forwarded, poolConfig: config.poolConfig, compression: config.compression, circuitBreaker: config.circuitBreaker, retryConfig: config.retryConfig, validation: config.validation};
         do {
             if config.http1Settings is ClientHttp1Settings {
@@ -38,71 +37,92 @@ public isolated client class Client {
         self.clientEp = httpEp;
         return;
     }
-    # Retrieve a list of all lecturers
     #
-    # + return - Successful response 
-    resource isolated function get lecturers() returns Lecturer[]|error {
-        string resourcePath = string `/lecturers`;
-        Lecturer[] response = check self.clientEp->get(resourcePath);
-        return response;
-    }
-    # Add a new lecturer
-    #
-    # + return - Lecturer created successfully 
-    resource isolated function post lecturers(Lecturer payload) returns Lecturer|error {
-        string resourcePath = string `/lecturers`;
+    # + return - Created 
+    resource isolated function post createCourse(CourseInfo payload) returns string|error {
+        string resourcePath = string `/createCourse`;
         http:Request request = new;
         json jsonBody = payload.toJson();
         request.setPayload(jsonBody, "application/json");
-        Lecturer response = check self.clientEp->post(resourcePath, request);
+        string response = check self.clientEp->post(resourcePath, request);
         return response;
     }
-    # Retrieve the details of a specific lecturer by their staff number
     #
-    # + staffNumber - Staff number of the lecturer to retrieve
-    # + return - Successful response 
-    resource isolated function get lecturers/[string staffNumber]() returns Lecturer|error {
-        string resourcePath = string `/lecturers/${getEncodedUri(staffNumber)}`;
-        Lecturer response = check self.clientEp->get(resourcePath);
-        return response;
-    }
-    # Update an existing lecturer's information
-    #
-    # + staffNumber - Staff number of the lecturer to update
-    # + return - Lecturer updated successfully 
-    resource isolated function put lecturers/[string staffNumber](Lecturer payload) returns Lecturer|error {
-        string resourcePath = string `/lecturers/${getEncodedUri(staffNumber)}`;
+    # + return - Ok 
+    resource isolated function put updateCourse(CourseInfo payload) returns string|error {
+        string resourcePath = string `/updateCourse`;
         http:Request request = new;
         json jsonBody = payload.toJson();
         request.setPayload(jsonBody, "application/json");
-        Lecturer response = check self.clientEp->put(resourcePath, request);
+        string response = check self.clientEp->put(resourcePath, request);
         return response;
     }
-    # Delete a lecturer's record by their staff number
     #
-    # + staffNumber - Staff number of the lecturer to delete
-    # + return - Lecturer deleted successfully 
-    resource isolated function delete lecturers/[string staffNumber]() returns http:Response|error {
-        string resourcePath = string `/lecturers/${getEncodedUri(staffNumber)}`;
-        http:Response response = check self.clientEp-> delete(resourcePath);
+    # + return - Created 
+    resource isolated function post createLecturer(LecturerInfo payload) returns string|error {
+        string resourcePath = string `/createLecturer`;
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        string response = check self.clientEp->post(resourcePath, request);
         return response;
     }
-    # Retrieve all the lecturers that teach a certain course
     #
-    # + courseCode - Course code of the course to retrieve lecturers for
-    # + return - Successful response 
-    resource isolated function get courses/[string courseCode]/lecturers() returns Lecturer[]|error {
-        string resourcePath = string `/courses/${getEncodedUri(courseCode)}/lecturers`;
-        Lecturer[] response = check self.clientEp->get(resourcePath);
+    # + return - Ok 
+    resource isolated function put updateLecturer(LecturerInfo payload) returns string|error {
+        string resourcePath = string `/updateLecturer`;
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        string response = check self.clientEp->put(resourcePath, request);
         return response;
     }
-    # Retrieve all the lecturers that sit in the same office
     #
-    # + officeNumber - Office number to retrieve lecturers for
-    # + return - Successful response 
-    resource isolated function get offices/[string officeNumber]/lecturers() returns Lecturer[]|error {
-        string resourcePath = string `/offices/${getEncodedUri(officeNumber)}/lecturers`;
-        Lecturer[] response = check self.clientEp->get(resourcePath);
+    # + return - Ok 
+    resource isolated function delete deleteLecturerByStaffNo/[string staffNumber]() returns string|error {
+        string resourcePath = string `/deleteLecturerByStaffNo/${getEncodedUri(staffNumber)}`;
+        string response = check self.clientEp-> delete(resourcePath);
+        return response;
+    }
+    #
+    # + return - Created 
+    resource isolated function post addCourse(AddCourseInfo payload) returns string|error {
+        string resourcePath = string `/addCourse`;
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        string response = check self.clientEp->post(resourcePath, request);
+        return response;
+    }
+    #
+    # + return - Created 
+    resource isolated function post addLecturer(AddLecturerInfo payload) returns string|error {
+        string resourcePath = string `/addLecturer`;
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        string response = check self.clientEp->post(resourcePath, request);
+        return response;
+    }
+    #
+    # + return - Ok 
+    resource isolated function get retrieveLecturerById/[string staffNumber]() returns LecturerInfo|error {
+        string resourcePath = string `/retrieveLecturerById/${getEncodedUri(staffNumber)}`;
+        LecturerInfo response = check self.clientEp->get(resourcePath);
+        return response;
+    }
+    #
+    # + return - Ok 
+    resource isolated function get retrieveLecturerByCourse() returns string|error {
+        string resourcePath = string `/retrieveLecturerByCourse`;
+        string response = check self.clientEp->get(resourcePath);
+        return response;
+    }
+    #
+    # + return - Ok 
+    resource isolated function get retrieveLecturerByOfficeNo() returns string|error {
+        string resourcePath = string `/retrieveLecturerByOfficeNo`;
+        string response = check self.clientEp->get(resourcePath);
         return response;
     }
 }

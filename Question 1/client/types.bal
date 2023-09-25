@@ -59,25 +59,45 @@ public type ProxyConfig record {|
     string password = "";
 |};
 
-public type LecturerArr Lecturer[];
-
-public type Lecturer record {
-    # Unique identifier for the lecturer
-    string staffNumber?;
-    # Office number of the lecturer
-    string officeNumber?;
-    # Name of the lecturer
-    string staffName?;
-    # Title of the lecturer
-    string title?;
-    Course[] courses?;
+public type LecturerInfo record {
+    string staffNumber;
+    string staffName;
+    string staffTitle;
+    string courseCode;
+    string officeNumber;
 };
 
-public type Course record {
-    # Name of the course
-    string courseName?;
-    # Code of the course
-    string courseCode?;
-    # NQF level of the course
-    int nqfLevel?;
+public type ErrorPayload record {
+    # Reason phrase
+    string reason?;
+    # Request path
+    string path?;
+    # Method type of the request
+    string method?;
+    # Error message
+    string message?;
+    # Timestamp of the error
+    string timestamp?;
+    # Relevant HTTP status code
+    int:Signed32 status?;
+};
+
+public type AddCourseInfo record {
+    string courseId;
+    string staffNumber;
+    string courseCode;
+};
+
+public type AddLecturerInfo record {
+    string lecturerId;
+    string staffNumber;
+    string courseCode;
+    string officeNumber;
+};
+
+public type CourseInfo record {
+    string courseCode;
+    string courseName;
+    string courseNqaLevel;
+    string courseDepartment;
 };
