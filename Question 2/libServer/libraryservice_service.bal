@@ -1,4 +1,5 @@
 import ballerina/grpc;
+<<<<<<< HEAD
 // 
 import ballerina/io;
 
@@ -12,6 +13,16 @@ map<string> library = {
 // library["12345"] = "Book1";
 // library["23456"] = "Book2";
 // library["34456"] = "Book3";
+=======
+import ballerina/io;
+
+map<string> library = {};
+
+
+library["12345"] = "Book1";
+library["23456"] = "Book2";
+library["34456"] = "Book3";
+>>>>>>> 592eda1cdc7a5c198cbadc0892a1693aa58e0d6d
 
 
 listener grpc:Listener ep = new (9090);
