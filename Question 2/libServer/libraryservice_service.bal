@@ -1,18 +1,17 @@
 import ballerina/io;
 import ballerina/grpc;
 
-
 map<string> library = {};
 
 // Sample books
 function initLibrary() returns map<string> {
-library["12345"] = "Book1";
-library["23456"] = "Book2";
-library["34567"] = "Book3";
-return books;
+    library["12345"] = "Book1";
+    library["23456"] = "Book2";
+    library["34567"] = "Book3";
+    return library;
 }
 
-library = initLibrary();
+library  = initLibrary();
 
 listener grpc:Listener ep = new (9090);
 
@@ -25,7 +24,7 @@ service "LibraryService" on ep {
         response.books = [];
         foreach var isbn in library.keys() {
             Book bookRecord;
-            bookRecord.title = library [isbn];
+            bookRecord.title = <string>library [isbn];
             bookRecord.author = "Unknown"; // You can set the author as needed.
             bookRecord.ISBN = isbn;
             response.books.push(bookRecord);
@@ -138,13 +137,13 @@ service "LibraryService" on ep {
         string removedISBN = value.ISBN;
         if (library.hasKey(removedISBN)) {
             // Remove the book from the library
-            library.remove(removedISBN);
+            string remove = library.remove(removedISBN);
             // Return the list of remaining books
             BookListResponse response;
             response.books = [];
             foreach var isbn in library.keys() {
                 Book bookRecord;
-                bookRecord.title = library[isbn];
+                bookRecord.title = <string>library[isbn];
                 bookRecord.author = "Unknown"; // You can set the author as needed.
                 bookRecord.ISBN = isbn;
                 response.books.push(bookRecord);
